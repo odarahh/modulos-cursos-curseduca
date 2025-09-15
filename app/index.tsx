@@ -59,6 +59,7 @@ interface Course {
   progress: number;
   modules: Module[];
   isFavorite: boolean;
+  rating?: number;
 }
 
 const { height: screenHeight } = Dimensions.get('window');
@@ -111,6 +112,7 @@ const mockCourse: Course = {
   thumbnail: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=300&h=200&fit=crop',
   progress: 35,
   isFavorite: false,
+  rating: undefined,
   modules: [
     {
       id: 'm1',
@@ -181,6 +183,8 @@ export default function CourseScreen() {
   const [menuType, setMenuType] = useState<'course' | 'lesson'>('course');
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
   const [slideAnim] = useState(new Animated.Value(screenHeight));
+  const [showRatingModal, setShowRatingModal] = useState<boolean>(false);
+  const [selectedRating, setSelectedRating] = useState<number>(0);
 
   const toggleModule = (moduleId: string) => {
     setCourse(prev => ({
@@ -239,8 +243,20 @@ export default function CourseScreen() {
   };
 
   const rateCourse = () => {
-    console.log('Avaliar curso');
+    setSelectedRating(course.rating || 0);
+    setShowRatingModal(true);
     closeMenu();
+  };
+
+  const submitRating = () => {
+    setCourse(prev => ({ ...prev, rating: selectedRating }));
+    setShowRatingModal(false);
+    setSelectedRating(0);
+  };
+
+  const cancelRating = () => {
+    setShowRatingModal(false);
+    setSelectedRating(0);
   };
 
   const handleLessonClick = (lessonId: string) => {
@@ -379,7 +395,11 @@ export default function CourseScreen() {
             <View style={styles.menuHandle} />
             {menuType === 'course' && (
               <TouchableOpacity style={styles.menuItem} onPress={rateCourse}>
-                <Star size={20} color="#FFD700" />
+                <Star 
+                  size={20} 
+                  color={course.rating ? "#FFD700" : "#E9ECEF"}
+                  fill={course.rating ? "#FFD700" : "transparent"}
+                />
                 <Text style={styles.menuItemText}>Avaliar</Text>
               </TouchableOpacity>
             )}
@@ -426,6 +446,51 @@ export default function CourseScreen() {
             </TouchableOpacity>
           </Animated.View>
         </TouchableOpacity>
+      </Modal>
+
+      <Modal
+        visible={showRatingModal}
+        transparent
+        animationType="fade"
+        onRequestClose={cancelRating}
+      >
+        <View style={styles.ratingModalOverlay}>
+          <View style={styles.ratingModalContainer}>
+            <Text style={styles.ratingModalTitle}>Avaliar conteúdo</Text>
+            
+            <View style={styles.starsContainer}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <TouchableOpacity
+                  key={star}
+                  onPress={() => setSelectedRating(star)}
+                  style={styles.starButton}
+                >
+                  <Star
+                    size={32}
+                    color={star <= selectedRating ? "#FFD700" : "#495057"}
+                    fill={star <= selectedRating ? "#FFD700" : "transparent"}
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+            
+            <View style={styles.ratingModalButtons}>
+              <TouchableOpacity
+                style={[styles.ratingButton, styles.cancelButton]}
+                onPress={cancelRating}
+              >
+                <Text style={styles.cancelButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[styles.ratingButton, styles.submitButton]}
+                onPress={submitRating}
+              >
+                <Text style={styles.submitButtonText}>Avaliar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
       </Modal>
     </SafeAreaView>
   );
@@ -598,5 +663,64 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#E9ECEF',
     marginLeft: 12,
+  },
+  ratingModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  ratingModalContainer: {
+    backgroundColor: '#212529',
+    borderRadius: 16,
+    padding: 24,
+    width: '80%',
+    maxWidth: 320,
+  },
+  ratingModalTitle: {
+    fontSize: 18,
+    fontWeight: '600' as const,
+    color: '#E9ECEF',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  starsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 32,
+    gap: 8,
+  },
+  starButton: {
+    padding: 4,
+  },
+  ratingModalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  ratingButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#495057',
+  },
+  submitButton: {
+    backgroundColor: '#28A745',
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    color: '#E9ECEF',
+    fontWeight: '500' as const,
+  },
+  submitButtonText: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    fontWeight: '500' as const,
   },
 });
