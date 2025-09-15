@@ -29,6 +29,7 @@ import {
   Heart,
   Share2,
   Check,
+  Star,
 } from 'lucide-react-native';
 
 type LessonType = 'video' | 'document' | 'assessment' | 'embed' | 'audio' | 'text' | 'live' | 'delivery' | 'gallery' | 'flashcards';
@@ -237,6 +238,11 @@ export default function CourseScreen() {
     closeMenu();
   };
 
+  const rateCourse = () => {
+    console.log('Avaliar curso');
+    closeMenu();
+  };
+
   const handleLessonClick = (lessonId: string) => {
     console.log('Aula clicada:', lessonId);
     // Aqui você pode navegar para a tela da aula ou abrir o conteúdo
@@ -371,6 +377,12 @@ export default function CourseScreen() {
             ]}
           >
             <View style={styles.menuHandle} />
+            {menuType === 'course' && (
+              <TouchableOpacity style={styles.menuItem} onPress={rateCourse}>
+                <Star size={20} color="#FFD700" />
+                <Text style={styles.menuItemText}>Avaliar</Text>
+              </TouchableOpacity>
+            )}
             <TouchableOpacity
               style={styles.menuItem}
               onPress={() => {
